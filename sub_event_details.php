@@ -7,7 +7,6 @@ error_reporting(0);
 
 $sub_event_id = $_GET['sub_event_id'];
 $se_name = $_GET['se_name'];
-
 // Check if sub_event_id has data already
 foreach (['contestants', 'judges', 'criteria'] as $table) {
     $query = $conn->query("SELECT * FROM $table WHERE subevent_id='$sub_event_id'");
@@ -17,6 +16,7 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
     }
 }
 ?>
+
 <style>
     #footer {
         position: fixed;
@@ -40,7 +40,6 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
 <script src="bootstrap/js/jquery-latest.js"></script>
 
 <body data-spy="scroll" data-target=".bs-docs-sidebar">
-
     <div class="navbar navbar-inverse navbar-fixed-top">
         <div class="navbar-inner">
             <div class="container">
@@ -135,25 +134,30 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
 
     <script>
         jQuery(document).ready(function ($) {
+            var count = 1;
             // Add Contestants
             $('#add-contestant').click(function (e) {
                 e.preventDefault();
-                let count = $('#contestant-form .text-box').length + 1;
+                count++;
                 $('#contestant-form .text-box:last').after(`<p class="text-box"><label>Contestant No. <span class="box-number">${count}</span></label><input type="text" name="contestants[]" placeholder="Contestant Fullname" required /></p>`);
             });
 
             // Add Judges
             $('#add-judge').click(function (e) {
                 e.preventDefault();
-                let count = $('#judge-form .text-box').length + 1;
+                count++;
                 $('#judge-form .text-box:last').after(`<p class="text-box"><label>Judge No. <span class="box-number">${count}</span></label><input type="text" name="judges[]" placeholder="Judge Fullname" required /></p>`);
             });
 
             // Add Criteria
             $('#add-criteria').click(function (e) {
                 e.preventDefault();
-                let count = $('#criteria-form .text-box').length + 1;
-                $('#criteria-form .text-box:last').after(`<p class="text-box"><label>Criteria No. <span class="box-number">${count}</span></label><input type="text" name="criteria[]" placeholder="Description" required /><label>Points:</label><input type="number" name="points[]" min="0" max="100" required /></p>`);
+                count++;
+                if (count <= 10) {
+                    $('#criteria-form .text-box:last').after(`<p class="text-box"><label>Criteria No. <span class="box-number">${count}</span></label><input type="text" name="criteria[]" placeholder="Description" required /><label>Points:</label><input type="number" name="points[]" min="0" max="100" required /></p>`);
+                } else {
+                    alert('You can only add up to 10 criteria');
+                }
             });
         });
     </script>
