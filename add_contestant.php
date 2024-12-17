@@ -56,91 +56,63 @@ $se_name = $_GET['se_name'];
 
 
 
-      <form method="POST">
+      <form method="POST" enctype="multipart/form-data">
         <input value="<?php echo $sub_event_id; ?>" name="sub_event_id" type="hidden" />
         <input value="<?php echo $se_name; ?>" name="se_name" type="hidden" />
-
-
-
-
 
         <table align="center" style="width: 40% !important;">
           <tr>
             <td>
-
-
               <div style="width: 100% !important;" class="panel panel-primary">
-
-
                 <div class="panel-heading">
                   <h3 class="panel-title">Add Contestant</h3>
                 </div>
-
-
-
-
-
                 <div class="panel-body">
-
                   <table align="center">
-
-
                     <tr>
-
                       <td>
                         <strong>Contestant no. :</strong> <br />
                         <select name="contestant_ctr" class="form-control">
-
-
                           <?php
-
                           $n1 = 0;
-
                           while ($n1 < 12) {
                             $n1++;
-
-
                             $cont_query = $conn->query("SELECT * FROM contestants WHERE contestant_ctr='$n1' AND subevent_id='$sub_event_id'");
-                            if (!$cont_query) {
-                              $error = $conn->errorInfo();
-                              die("Error: " . $error[2]);
-                            }
-
-                            if ($cont_query->rowCount() > 0) {
-
-                            } else {
+                            if ($cont_query->rowCount() == 0) {
                               echo "<option>" . $n1 . "</option>";
                             }
-
                           }
-
                           ?>
-
-
-
                         </select>
                       </td>
                       <td>&nbsp;&nbsp;&nbsp;</td>
                       <td>
                         <strong>Contestant Name:</strong> <br />
-
-                        <input name="fullname" placeholder="Enter Name" type="text" class="form-control"
-                          required="true" />
+                        <input name="fullname" placeholder="Enter Name" type="text" class="form-control" required />
                       </td>
                     </tr>
-
                     <tr>
-                      <td colspan="3">&nbsp;</td>
+                      <td colspan="3">
+                        <strong>Upload Image:</strong> <br />
+                        <input name="image" type="file" accept="image/*" class="form-control" required />
+                      </td>
                     </tr>
                     <tr>
-                      <td colspan="3" align="right"><a
-                          href="sub_event_details_edit.php?sub_event_id=<?php echo $sub_event_id; ?>&se_name=<?php echo $se_name; ?>"
-                          class="btn btn-default">Back</a>&nbsp;<button name="add_contestant"
-                          class="btn btn-primary">Save</button></td>
+                      <td colspan="3" align="right">
+                        <a href="sub_event_details_edit.php?sub_event_id=<?php echo $sub_event_id; ?>&se_name=<?php echo $se_name; ?>"
+                          class="btn btn-default">Back</a>
+                        <button name="add_contestant" class="btn btn-primary">Save</button>
+                      </td>
                     </tr>
-
                   </table>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </table>
       </form>
+
+
     </div>
 
   </div>
@@ -155,27 +127,49 @@ $se_name = $_GET['se_name'];
   <?php
 
   if (isset($_POST['add_contestant'])) {
-
     $se_name = $_POST['se_name'];
     $sub_event_id = $_POST['sub_event_id'];
     $contestant_ctr = $_POST['contestant_ctr'];
     $fullname = $_POST['fullname'];
 
-    /* contestants */
+    // Handle image upload
+    if (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
+      $imageTmpPath = $_FILES['image']['tmp_name'];
+      $imageName = $_FILES['image']['name'];
+      $imageExtension = pathinfo($imageName, PATHINFO_EXTENSION);
 
-    $conn->query("insert into contestants(fullname,subevent_id,contestant_ctr)values('$fullname','$sub_event_id','$contestant_ctr')");
+      // Clean up the fullname to create a valid file name
+      $cleanFullname = preg_replace('/[^a-zA-Z0-9_-]/', '_', $fullname . $contestant_ctr);
+      $newImageName = $cleanFullname . '.' . $imageExtension;
 
+      // Define the upload folder
+      $uploadFolder = 'uploads/contestants/';
+      if (!is_dir($uploadFolder)) {
+        mkdir($uploadFolder, 0755, true);
+      }
 
-    ?>
-    <script>
+      // Move the uploaded file to the target folder
+      $imagePath = $uploadFolder . $newImageName;
+      if (move_uploaded_file($imageTmpPath, $imagePath)) {
+        // Save data to the database
+        $conn->query("INSERT INTO contestants (fullname, image, subevent_id, contestant_ctr) 
+                    VALUES ('$fullname', '$newImageName', '$sub_event_id', '$contestant_ctr')");
 
-      window.location = 'sub_event_details_edit.php?sub_event_id=<?php echo $sub_event_id; ?>&se_name=<?php echo $se_name; ?>';
-      alert('Contestant <?php echo $fullname; ?> added successfully!');						
-    </script>
-    <?php
+        ?>
+        <script>
+          window.location = 'sub_event_details_edit.php?sub_event_id=<?php echo $sub_event_id; ?>&se_name=<?php echo $se_name; ?>';
+          alert('Contestant <?php echo $fullname; ?> added successfully!');
+        </script>
+        <?php
+      } else {
+        echo "<script>alert('Error moving uploaded image.');</script>";
+      }
+    } else {
+      echo "<script>alert('Error uploading image. Please try again.');</script>";
+    }
+  }
 
-
-  } ?>
+  ?>
 
   <?php include('footer.php'); ?>
 
