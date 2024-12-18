@@ -72,17 +72,11 @@ $se_name = $_GET['se_name'];
                     <tr>
                       <td>
                         <strong>Contestant no. :</strong> <br />
-                        <select name="contestant_ctr" class="form-control">
-                          <?php
-                          $n1 = 0;
-                          while ($n1 < 12) {
-                            $n1++;
-                            $cont_query = $conn->query("SELECT * FROM contestants WHERE contestant_ctr='$n1' AND subevent_id='$sub_event_id'");
-                            if ($cont_query->rowCount() == 0) {
-                              echo "<option>" . $n1 . "</option>";
-                            }
-                          }
-                          ?>
+                        <input type="number" name="contestant_ctr" class="form-control"
+                          value="<?php echo $cont_row['contestant_ctr']; ?>" required
+                          onblur="checkControlNumber(this.value, '<?php echo $sub_event_id; ?>')" />
+                        <small id="contestantCtrError" style="color: red; display: none;">This control number is already
+                          taken!</small>
                         </select>
                       </td>
                       <td>&nbsp;&nbsp;&nbsp;</td>
@@ -124,6 +118,23 @@ $se_name = $_GET['se_name'];
   </div>
 
   </div>
+
+  <script>
+    function checkControlNumber(value, subEventId) {
+      if (value) {
+        fetch(`check_control_number.php?contestant_ctr=${value}&sub_event_id=${subEventId}`)
+          .then(response => response.json())
+          .then(data => {
+            const errorElement = document.getElementById('contestantCtrError');
+            if (data.taken) {
+              errorElement.style.display = 'block';
+            } else {
+              errorElement.style.display = 'none';
+            }
+          });
+      }
+    }
+  </script>
   <?php
 
   if (isset($_POST['add_contestant'])) {

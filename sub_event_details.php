@@ -7,7 +7,8 @@ error_reporting(0);
 
 $sub_event_id = $_GET['sub_event_id'];
 $se_name = $_GET['se_name'];
-// Check if sub_event_id has data already
+
+// Redirect if sub_event_id has existing data
 foreach (['contestants', 'judges', 'criteria'] as $table) {
     $query = $conn->query("SELECT * FROM $table WHERE subevent_id='$sub_event_id'");
     if ($query->rowCount() > 0) {
@@ -17,29 +18,31 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
 }
 ?>
 
-<style>
-    #footer {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background-color: lightyellow;
-        border: 2px solid black;
-        box-shadow: 3px 3px 8px #818181;
-        padding: 4px;
-        width: 200px;
-    }
+<head>
+    <style>
+        #footer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: lightyellow;
+            border: 2px solid black;
+            box-shadow: 3px 3px 8px #818181;
+            padding: 4px;
+            width: 200px;
+        }
 
-    #main {
-        margin: 0 auto;
-        max-width: 800px;
-        border: 1px solid gray;
-        padding: 10px;
-    }
-</style>
+        #main {
+            margin: 0 auto;
+            max-width: 800px;
+            border: 1px solid gray;
+            padding: 10px;
+        }
+    </style>
 
-<script src="bootstrap/js/jquery-latest.js"></script>
+    <script src="bootstrap/js/jquery-latest.js"></script>
+</head>
 
-<body data-spy="scroll" data-target=".bs-docs-sidebar">
+<body>
     <div class="navbar navbar-inverse navbar-fixed-top">
         <div class="navbar-inner">
             <div class="container">
@@ -58,7 +61,7 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
     </header>
 
     <div class="container">
-        <form method="POST">
+        <form method="POST" id="settingsForm">
             <input type="hidden" name="se_name" value="<?php echo $se_name; ?>" />
             <input type="hidden" name="sub_event_id" value="<?php echo $sub_event_id; ?>" />
 
@@ -111,10 +114,12 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
                                 <label>Criteria No. <span class="box-number">1</span></label>
                                 <input type="text" name="criteria[]" placeholder="Description" required />
                                 <label>Points:</label>
-                                <input type="number" name="points[]" min="0" max="100" required />
+                                <input type="number" name="points[]" min="0" max="100" class="criteria-points"
+                                    required />
                             </p>
                             <p><a id="add-criteria" class="add-box btn btn-sm btn-success" href="#">Add Criteria</a></p>
                         </div>
+                        <p><strong>Total Points:</strong> <span id="total-points">0</span>/100</p>
                     </div>
                 </div>
             </div>
@@ -135,6 +140,7 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
     <script>
         jQuery(document).ready(function ($) {
             var count = 1;
+
             // Add Contestants
             $('#add-contestant').click(function (e) {
                 e.preventDefault();
@@ -149,14 +155,39 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
                 $('#judge-form .text-box:last').after(`<p class="text-box"><label>Judge No. <span class="box-number">${count}</span></label><input type="text" name="judges[]" placeholder="Judge Fullname" required /></p>`);
             });
 
-            // Add Criteria
+            // Add Criteria and Validate Points
+            let totalPoints = 0;
+
+            function updateTotalPoints() {
+                totalPoints = 0;
+                $('.criteria-points').each(function () {
+                    totalPoints += parseInt($(this).val()) || 0;
+                });
+                $('#total-points').text(totalPoints);
+
+                if (totalPoints > 100) {
+                    alert('Total points cannot exceed 100%.');
+                    return false;
+                }
+                return true;
+            }
+
+            $('#criteria-form').on('input', '.criteria-points', updateTotalPoints);
+
             $('#add-criteria').click(function (e) {
                 e.preventDefault();
                 count++;
                 if (count <= 10) {
-                    $('#criteria-form .text-box:last').after(`<p class="text-box"><label>Criteria No. <span class="box-number">${count}</span></label><input type="text" name="criteria[]" placeholder="Description" required /><label>Points:</label><input type="number" name="points[]" min="0" max="100" required /></p>`);
+                    $('#criteria-form .text-box:last').after(`<p class="text-box"><label>Criteria No. <span class="box-number">${count}</span></label><input type="text" name="criteria[]" placeholder="Description" required /><label>Points:</label><input type="number" name="points[]" min="0" max="100" class="criteria-points" required /></p>`);
                 } else {
                     alert('You can only add up to 10 criteria');
+                }
+            });
+
+            $('#settingsForm').submit(function (e) {
+                if (!updateTotalPoints() || totalPoints > 100) {
+                    e.preventDefault();
+                    alert('Total points must be 100 or less.');
                 }
             });
         });
@@ -183,6 +214,12 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
     if (isset($_POST['save_settings'])) {
         $sub_event_id = $_POST['sub_event_id'];
         $se_name = $_POST['se_name'];
+
+        $totalPoints = array_sum($_POST['points']);
+        if ($totalPoints > 100) {
+            echo "<script>alert('Total points for criteria must not exceed 100%');</script>";
+            exit();
+        }
 
         // Save Contestants
         foreach ($_POST['contestants'] as $index => $contestant) {

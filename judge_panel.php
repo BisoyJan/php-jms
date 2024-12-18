@@ -1221,9 +1221,9 @@ while ($score_row = $score_query->fetch())
 <td align="center">
 
 <h3><?php echo $se_namexx; ?> - <?php echo $cont_row['fullname']; ?></h3>
-<img src="uploads/contestants/<?php echo $cont_row['image']; ?>" alt="<?php echo $row['fullname']; ?>" />
+<img src="<?php echo (empty($cont_row['image']) ? 'uploads/contestants/default.jpg' : 'uploads/contestants/' . $cont_row['image']); ?>" />
 
- 
+ <br>
 Total Score Earned:
 <strong><?php $score_query = $conn->query("select * from sub_results where subevent_id='$subevent_id' and judge_id='$j_id' and contestant_id='$getContestant_id'") or die(mysql_error());
 while ($score_row = $score_query->fetch()) { echo $score_row['total_score']."%"; }?> of 100% </strong>

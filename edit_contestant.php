@@ -12,7 +12,6 @@ $contestant_id = $_GET['contestant_id'];
 <style>
   img {
     max-width: 80%;
-    /* set a maximum width to prevent the image from becoming too large */
     height: auto;
     margin: 0 auto;
     display: block;
@@ -27,7 +26,6 @@ $contestant_id = $_GET['contestant_id'];
 </style>
 
 <body>
-  <!-- Navbar -->
   <div class="navbar navbar-inverse navbar-fixed-top">
     <div class="navbar-inner">
       <div class="container"></div>
@@ -62,19 +60,11 @@ $contestant_id = $_GET['contestant_id'];
                 <tr>
                   <td>
                     Contestant No. <br />
-                    <select name="contestant_ctr" class="form-control">
-                      <option><?php echo $cont_row['contestant_ctr']; ?></option>
-                      <?php
-                      $n1 = 0;
-                      while ($n1 < 12) {
-                        $n1++;
-                        $cont_query = $conn->query("SELECT * FROM contestants WHERE contestant_ctr='$n1' AND subevent_id='$sub_event_id'") or die(mysql_error());
-                        if ($cont_query->rowCount() == 0) {
-                          echo "<option>$n1</option>";
-                        }
-                      }
-                      ?>
-                    </select>
+                    <input type="number" name="contestant_ctr" class="form-control"
+                      value="<?php echo $cont_row['contestant_ctr']; ?>" required
+                      onblur="checkControlNumber(this.value, '<?php echo $sub_event_id; ?>')" />
+                    <small id="contestantCtrError" style="color: red; display: none;">This control number is already
+                      taken!</small>
                   </td>
                   <td>&nbsp;</td>
                   <td>
@@ -86,7 +76,8 @@ $contestant_id = $_GET['contestant_id'];
                 <tr>
                   <td colspan="3">
                     Current Image:<br />
-                    <img class="large-centered" src="uploads/contestants/<?php echo $cont_row['image']; ?>"
+                    <img class="large-centered"
+                      src="<?php echo (empty($cont_row['image']) ? 'uploads/contestants/default.jpg' : 'uploads/contestants/' . $cont_row['image']); ?>"
                       alt="Contestant Image" width="100" />
                   </td>
                 </tr>
@@ -116,6 +107,23 @@ $contestant_id = $_GET['contestant_id'];
     </form>
   </div>
 
+  <script>
+    function checkControlNumber(value, subEventId) {
+      if (value) {
+        fetch(`check_control_number.php?contestant_ctr=${value}&sub_event_id=${subEventId}`)
+          .then(response => response.json())
+          .then(data => {
+            const errorElement = document.getElementById('contestantCtrError');
+            if (data.taken) {
+              errorElement.style.display = 'block';
+            } else {
+              errorElement.style.display = 'none';
+            }
+          });
+      }
+    }
+  </script>
+
   <?php
   if (isset($_POST['edit_contestant'])) {
     $se_name = $_POST['se_name'];
@@ -124,40 +132,37 @@ $contestant_id = $_GET['contestant_id'];
     $contestant_ctr = $_POST['contestant_ctr'];
     $fullname = $_POST['fullname'];
 
-    if (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
-      $imageTmpPath = $_FILES['image']['tmp_name'];
-      $imageName = $_FILES['image']['name'];
-      $imageExtension = pathinfo($imageName, PATHINFO_EXTENSION);
-
-      // Clean up the fullname to create a valid file name
-      $cleanFullname = preg_replace('/[^a-zA-Z0-9_-]/', '_', $fullname . $contestant_ctr);
-      $newImageName = $cleanFullname . '.' . $imageExtension;
-
-      // Define the upload folder
-      $uploadFolder = 'uploads/contestants/';
-      if (!is_dir($uploadFolder)) {
-        mkdir($uploadFolder, 0755, true);
-      }
-
-      // Move the uploaded file to the target folder
-      $imagePath = $uploadFolder . $newImageName;
-      if (move_uploaded_file($imageTmpPath, $imagePath)) {
-        // Save data to the database
-        $conn->query("UPDATE contestants SET fullname='$fullname', contestant_ctr='$contestant_ctr', image='$newImageName' WHERE contestant_id='$contestant_id'");
-
-        ?>
-        <script>
-          window.location = 'sub_event_details_edit.php?sub_event_id=<?php echo $sub_event_id; ?>&se_name=<?php echo $se_name; ?>';
-          alert('Contestant <?php echo $fullname; ?> updated successfully!');
-        </script>
-        <?php
-      } else {
-        echo "<script>alert('Error moving uploaded image.');</script>";
-      }
+    $check_query = $conn->query("SELECT * FROM contestants WHERE contestant_ctr='$contestant_ctr' AND subevent_id='$sub_event_id' AND contestant_id != '$contestant_id'");
+    if ($check_query->rowCount() > 0) {
+      echo "<script>alert('Control number already taken. Please choose another.');</script>";
     } else {
-      echo "<script>alert('Error uploading image. Please try again.');</script>";
-    }
+      $update_query = "UPDATE contestants SET fullname='$fullname', contestant_ctr='$contestant_ctr'";
 
+      if (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
+        $imageTmpPath = $_FILES['image']['tmp_name'];
+        $imageName = $_FILES['image']['name'];
+        $imageExtension = pathinfo($imageName, PATHINFO_EXTENSION);
+        $cleanFullname = preg_replace('/[^a-zA-Z0-9_-]/', '_', $fullname . $contestant_ctr);
+        $newImageName = $cleanFullname . '.' . $imageExtension;
+
+        $uploadFolder = 'uploads/contestants/';
+        if (!is_dir($uploadFolder)) {
+          mkdir($uploadFolder, 0755, true);
+        }
+
+        $imagePath = $uploadFolder . $newImageName;
+        if (move_uploaded_file($imageTmpPath, $imagePath)) {
+          $update_query .= ", image='$newImageName'";
+        }
+      }
+      $update_query .= " WHERE contestant_id='$contestant_id'";
+      $conn->query($update_query);
+
+      echo "<script>
+        window.location = 'sub_event_details_edit.php?sub_event_id=$sub_event_id&se_name=$se_name';
+        alert('Contestant $fullname updated successfully!');
+      </script>";
+    }
   }
   ?>
 
