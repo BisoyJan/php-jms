@@ -37,6 +37,68 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
             border: 1px solid gray;
             padding: 10px;
         }
+
+        .panel {
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel-primary {
+            border-color: #337ab7;
+        }
+
+        .panel-primary>.panel-heading {
+            background-color: #337ab7;
+            border-color: #337ab7;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .panel-body {
+            background-color: #f9f9f9;
+            padding: 20px;
+        }
+
+        .my-form p.text-box {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
+            background: #fff;
+        }
+
+        .my-form input[type="text"],
+        .my-form input[type="file"],
+        .my-form select {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .add-box {
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .add-box.btn-success {
+            background-color: #5cb85c;
+            border-color: #4cae4c;
+            color: #fff;
+        }
+
+        .add-box.btn-success:hover {
+            background-color: #449d44;
+            border-color: #398439;
+        }
+
+        label {
+            font-weight: bold;
+        }
     </style>
 
     <script src="bootstrap/js/jquery-latest.js"></script>
@@ -61,7 +123,7 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
     </header>
 
     <div class="container">
-        <form method="POST" id="settingsForm">
+        <form method="POST" id="settingsForm" enctype="multipart/form-data">
             <input type="hidden" name="se_name" value="<?php echo $se_name; ?>" />
             <input type="hidden" name="sub_event_id" value="<?php echo $sub_event_id; ?>" />
 
@@ -76,6 +138,22 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
                             <p class="text-box">
                                 <label>Contestant No. <span class="box-number">1</span></label>
                                 <input type="text" name="contestants[]" placeholder="Contestant Fullname" required />
+                                <label>Image:</label>
+                                <input type="file" name="contestant_images[]" accept="image/*" required />
+                                <label>Category:</label>
+                                <select name="contestant_categories[]" required>
+                                    <option value="Ms">Ms</option>
+                                    <option value="Mr">Mr</option>
+                                </select>
+                                <label>Department:</label>
+                                <select name="contestant_departments[]" required>
+                                    <?php
+                                    $departments = $conn->query("SELECT * FROM dapartment");
+                                    while ($row = $departments->fetch()) {
+                                        echo "<option value='{$row['department_id']}'>{$row['department']}</option>";
+                                    }
+                                    ?>
+                                </select>
                             </p>
                             <p><a id="add-contestant" class="add-box btn btn-sm btn-success" href="#">Add Contestant</a>
                             </p>
@@ -140,12 +218,16 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
     <script>
         jQuery(document).ready(function ($) {
             var count = 1;
+            var constestant = 1;
 
             // Add Contestants
             $('#add-contestant').click(function (e) {
                 e.preventDefault();
-                count++;
-                $('#contestant-form .text-box:last').after(`<p class="text-box"><label>Contestant No. <span class="box-number">${count}</span></label><input type="text" name="contestants[]" placeholder="Contestant Fullname" required /></p>`);
+                constestant++;
+                $('#contestant-form .text-box:last').after(`<p class="text-box"><label>Contestant No. <span class="box-number">${constestant}</span></label><input type="text" name="contestants[]" placeholder="Contestant Fullname" required /><label>Image:</label><input type="file" name="contestant_images[]" accept="image/*" required /><label>Category:</label><select name="contestant_categories[]" required><option value="Ms">Ms</option><option value="Mr">Mr</option></select><label>Department:</label><select name="contestant_departments[]" required><?php $departments = $conn->query("SELECT * FROM dapartment");
+                while ($row = $departments->fetch()) {
+                    echo "<option value='{$row['department_id']}'>{$row['depart']}</option>";
+                } ?></select></p>`);
             });
 
             // Add Judges
@@ -224,22 +306,48 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
         // Save Contestants
         foreach ($_POST['contestants'] as $index => $contestant) {
             $rand_code = generateRandomNumber();
-            $conn->query("INSERT INTO contestants (fullname, subevent_id, contestant_ctr, rand_code) VALUES ('$contestant', '$sub_event_id', '$index', '$rand_code')");
+            $contestant_ctr = $index + 1;
+            $category = $_POST['contestant_categories'][$index];
+            $department = $_POST['contestant_departments'][$index];
+
+            $imageTmpPath = $_FILES['contestant_images']['tmp_name'][$index];
+            $imageName = $_FILES['contestant_images']['name'][$index];
+            $imageExtension = pathinfo($imageName, PATHINFO_EXTENSION);
+            $cleanFullname = preg_replace('/[^a-zA-Z0-9_-]/', '_', $contestant . $contestant_ctr);
+            $newImageName = $cleanFullname . '.' . $imageExtension;
+
+            $uploadFolder = 'uploads/contestants/';
+            if (!is_dir($uploadFolder)) {
+                mkdir($uploadFolder, 0755, true);
+            }
+
+            $imagePath = $uploadFolder . $newImageName;
+            if (move_uploaded_file($imageTmpPath, $imagePath)) {
+                $conn->query("INSERT INTO contestants 
+                (fullname, subevent_id, contestant_ctr, rand_code, image, category, department_id) 
+                VALUES ('$contestant', '$sub_event_id', '$contestant_ctr', '$rand_code', '$newImageName', '$category', '$department')");
+            }
+
         }
 
         // Save Judges
         foreach ($_POST['judges'] as $index => $judge) {
+            $judge_ctr = $index + 1;
             $rand_code = generateRandomCode();
-            $conn->query("INSERT INTO judges (fullname, subevent_id, judge_ctr, code) VALUES ('$judge', '$sub_event_id', '$index' , '$rand_code')");
+            $conn->query("INSERT INTO judges (fullname, subevent_id, judge_ctr, code) 
+                VALUES ('$judge', '$sub_event_id', '$judge_ctr', '$rand_code')");
         }
 
         // Save Criteria
         foreach ($_POST['criteria'] as $index => $criteria) {
+            $criteria_ctr = $index + 1;
             $points = $_POST['points'][$index];
-            $conn->query("INSERT INTO criteria (description, subevent_id, criteria_ctr, points) VALUES ('$criteria', '$sub_event_id', '$index', '$points')");
+            $conn->query("INSERT INTO criteria (criteria, subevent_id, criteria_ctr, percentage) 
+                VALUES ('$criteria', '$sub_event_id', '$criteria_ctr', '$points')");
         }
 
-        echo "<script>window.location = 'sub_event_details_edit.php?sub_event_id=$sub_event_id&se_name=$se_name';</script>";
+        echo "<script>window.location = 'sub_event_details_edit.php?sub_event_id=$sub_event_id&se_name=$se_name';
+          alert('Contestants, Judges, and Criteria have been saved successfully!');</script>";
     }
     ?>
 </body>

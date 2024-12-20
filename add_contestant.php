@@ -63,44 +63,65 @@ $se_name = $_GET['se_name'];
         <table align="center" style="width: 40% !important;">
           <tr>
             <td>
-              <div style="width: 100% !important;" class="panel panel-primary">
+              <div class="panel panel-primary">
                 <div class="panel-heading">
                   <h3 class="panel-title">Add Contestant</h3>
                 </div>
                 <div class="panel-body">
-                  <table align="center">
-                    <tr>
-                      <td>
-                        <strong>Contestant no. :</strong> <br />
-                        <input type="number" name="contestant_ctr" class="form-control"
-                          value="<?php echo $cont_row['contestant_ctr']; ?>" required
-                          onblur="checkControlNumber(this.value, '<?php echo $sub_event_id; ?>')" />
-                        <small id="contestantCtrError" style="color: red; display: none;">This control number is already
-                          taken!</small>
-                        </select>
-                      </td>
-                      <td>&nbsp;&nbsp;&nbsp;</td>
-                      <td>
-                        <strong>Contestant Name:</strong> <br />
-                        <input name="fullname" placeholder="Enter Name" type="text" class="form-control" required />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colspan="3">
-                        <strong>Upload Image:</strong> <br />
-                        <input name="image" type="file" accept="image/*" class="form-control" required />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colspan="3" align="right">
-                        <a href="sub_event_details_edit.php?sub_event_id=<?php echo $sub_event_id; ?>&se_name=<?php echo $se_name; ?>"
-                          class="btn btn-default">Back</a>
-                        <button name="add_contestant" class="btn btn-primary">Save</button>
-                      </td>
-                    </tr>
-                  </table>
+                  <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="sub_event_id" value="<?php echo $sub_event_id; ?>" />
+                    <input type="hidden" name="se_name" value="<?php echo $se_name; ?>" />
+
+                    <div class="form-group">
+                      <label for="contestantCtr"><strong>Contestant No.:</strong></label>
+                      <input type="number" id="contestantCtr" name="contestant_ctr" class="form-control"
+                        value="<?php echo $cont_row['contestant_ctr']; ?>" required
+                        onblur="checkControlNumber(this.value, '<?php echo $sub_event_id; ?>')" />
+                      <small id="contestantCtrError" style="color: red; display: none;">
+                        This control number is already taken!
+                      </small>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="fullname"><strong>Contestant Name:</strong></label>
+                      <input type="text" id="fullname" name="fullname" placeholder="Enter Name" class="form-control"
+                        required />
+                    </div>
+
+                    <div class="form-group">
+                      <label for="category"><strong>Category:</strong></label>
+                      <select id="category" name="contestant_categories" class="form-control" required>
+                        <option value="Ms">Ms</option>
+                        <option value="Mr">Mr</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="department"><strong>Department:</strong></label>
+                      <select id="department" name="contestant_departments" class="form-control" required>
+                        <?php
+                        $departments = $conn->query("SELECT * FROM dapartment");
+                        while ($row = $departments->fetch()) {
+                          echo "<option value='{$row['department_id']}'>{$row['department']}</option>";
+                        }
+                        ?>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="imageUpload"><strong>Upload Image:</strong></label>
+                      <input type="file" id="imageUpload" name="image" accept="image/*" class="form-control" required />
+                    </div>
+
+                    <div class="form-group text-right">
+                      <a href="sub_event_details_edit.php?sub_event_id=<?php echo $sub_event_id; ?>&se_name=<?php echo $se_name; ?>"
+                        class="btn btn-default">Back</a>
+                      <button type="submit" name="add_contestant" class="btn btn-primary">Save</button>
+                    </div>
+                  </form>
                 </div>
               </div>
+
             </td>
           </tr>
         </table>
@@ -120,6 +141,8 @@ $se_name = $_GET['se_name'];
   </div>
 
   <script>
+
+
     function checkControlNumber(value, subEventId) {
       if (value) {
         fetch(`check_control_number.php?contestant_ctr=${value}&sub_event_id=${subEventId}`)
@@ -137,11 +160,21 @@ $se_name = $_GET['se_name'];
   </script>
   <?php
 
+  function generateRandomNumber($length = 7)
+  {
+    $min = pow(10, $length - 1);
+    $max = pow(10, $length) - 1;
+    return rand($min, $max);
+  }
+
   if (isset($_POST['add_contestant'])) {
+    $rand_code = generateRandomNumber();
     $se_name = $_POST['se_name'];
     $sub_event_id = $_POST['sub_event_id'];
     $contestant_ctr = $_POST['contestant_ctr'];
     $fullname = $_POST['fullname'];
+    $category = $_POST['category'];
+    $department = $_POST['department'];
 
     // Handle image upload
     if (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
@@ -163,8 +196,8 @@ $se_name = $_GET['se_name'];
       $imagePath = $uploadFolder . $newImageName;
       if (move_uploaded_file($imageTmpPath, $imagePath)) {
         // Save data to the database
-        $conn->query("INSERT INTO contestants (fullname, image, subevent_id, contestant_ctr) 
-                    VALUES ('$fullname', '$newImageName', '$sub_event_id', '$contestant_ctr')");
+        $conn->query("INSERT INTO contestants (fullname, image, subevent_id, contestant_ctr, rand_code, category, department_id) 
+                    VALUES ('$fullname', '$newImageName', '$sub_event_id', '$contestant_ctr', '$rand_code', '$category', '$department')");
 
         ?>
         <script>

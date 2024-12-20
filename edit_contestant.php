@@ -26,12 +26,18 @@ $contestant_id = $_GET['contestant_id'];
 </style>
 
 <body>
+
+
+  <!-- Navbar
+    ================================================== -->
   <div class="navbar navbar-inverse navbar-fixed-top">
     <div class="navbar-inner">
-      <div class="container"></div>
+      <div class="container">
+
+
+      </div>
     </div>
   </div>
-
   <header class="jumbotron subhead" id="overview">
     <div class="container">
       <h1><?php echo $se_name; ?> Settings</h1>
@@ -39,73 +45,113 @@ $contestant_id = $_GET['contestant_id'];
     </div>
   </header>
 
+
   <div class="container">
-    <form method="POST" enctype="multipart/form-data">
-      <input value="<?php echo $sub_event_id; ?>" name="sub_event_id" type="hidden" />
-      <input value="<?php echo $se_name; ?>" name="se_name" type="hidden" />
-      <input value="<?php echo $contestant_id; ?>" name="contestant_id" type="hidden" />
 
-      <div class="col-lg-3"></div>
-      <div class="col-lg-6">
-        <div class="panel panel-primary">
-          <div class="panel-heading">
-            <h3 class="panel-title">Edit Contestant</h3>
-          </div>
+    <div class="span12">
 
-          <div class="panel-body">
-            <table align="center">
-              <?php
-              $cont_query = $conn->query("SELECT * FROM contestants WHERE contestant_id='$contestant_id'") or die(mysql_error());
-              while ($cont_row = $cont_query->fetch()) { ?>
-                <tr>
-                  <td>
-                    Contestant No. <br />
-                    <input type="number" name="contestant_ctr" class="form-control"
-                      value="<?php echo $cont_row['contestant_ctr']; ?>" required
-                      onblur="checkControlNumber(this.value, '<?php echo $sub_event_id; ?>')" />
-                    <small id="contestantCtrError" style="color: red; display: none;">This control number is already
-                      taken!</small>
-                  </td>
-                  <td>&nbsp;</td>
-                  <td>
-                    Contestant Fullname <br />
-                    <input name="fullname" type="text" class="form-control"
-                      value="<?php echo $cont_row['fullname']; ?>" />
-                  </td>
-                </tr>
-                <tr>
-                  <td colspan="3">
-                    Current Image:<br />
-                    <img class="large-centered"
-                      src="<?php echo (empty($cont_row['image']) ? 'uploads/contestants/default.jpg' : 'uploads/contestants/' . $cont_row['image']); ?>"
-                      alt="Contestant Image" width="100" />
-                  </td>
-                </tr>
-                <tr>
-                  <td colspan="3">
-                    Update Image:<br />
-                    <input type="file" name="image" accept="image/*" class="form-control" />
-                  </td>
-                </tr>
-              <?php } ?>
-              <tr>
-                <td colspan="3">&nbsp;</td>
-              </tr>
-              <tr>
-                <td colspan="3" align="right">
+
+
+      <br />
+      <div class="col-md-12">
+        <ul class="breadcrumb">
+
+          <li><a href="selection.php">User Selection</a></li>
+
+          <li><a href="home.php">List of Events</a></li>
+
+          <li><a
+              href="sub_event_details_edit.php?sub_event_id=<?php echo $sub_event_id; ?>&se_name=<?php echo $se_name; ?>"><?php echo $se_name; ?>
+              Settings</a></li>
+
+          <li>Edit Contestant</li>
+
+        </ul>
+      </div>
+
+
+
+      <form method="POST" enctype="multipart/form-data">
+        <input value="<?php echo $sub_event_id; ?>" name="sub_event_id" type="hidden" />
+        <input value="<?php echo $se_name; ?>" name="se_name" type="hidden" />
+        <input value="<?php echo $contestant_id; ?>" name="contestant_id" type="hidden" />
+
+        <table align="center" style="width: 40% !important;">
+          <?php
+          $cont_query = $conn->query("SELECT * FROM contestants WHERE contestant_id='$contestant_id'") or die(mysql_error());
+          while ($cont_row = $cont_query->fetch()) { ?>
+            <tr>
+              <td>
+                <div class="panel panel-primary">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">Edit Contestant</h3>
+                  </div>
+                  <div class="panel-body">
+                    <form method="POST" enctype="multipart/form-data">
+                      <input type="hidden" name="sub_event_id" value="<?php echo $sub_event_id; ?>" />
+                      <input type="hidden" name="se_name" value="<?php echo $se_name; ?>" />
+
+                      <div class="form-group">
+                        <label for="contestantCtr"><strong>Contestant No.:</strong></label>
+                        <input type="number" id="contestantCtr" name="contestant_ctr" class="form-control"
+                          value="<?php echo $cont_row['contestant_ctr']; ?>" required
+                          onblur="checkControlNumber(this.value, '<?php echo $sub_event_id; ?>')" />
+                        <small id="contestantCtrError" style="color: red; display: none;">
+                          This control number is already taken!
+                        </small>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="fullname"><strong>Contestant Name:</strong></label>
+                        <input type="text" id="fullname" name="fullname" placeholder="Enter Name" class="form-control"
+                          value="<?php echo $cont_row['fullname']; ?>" required />
+                      </div>
+
+                      <di<div class="form-group">
+                        <label for="category"><strong>Category:</strong></label>
+                        <select id="category" name="category" class="form-control" required>
+                          <option value="Ms" <?php echo ($cont_row['category'] === 'Ms') ? 'selected' : ''; ?>>Ms</option>
+                          <option value="Mr" <?php echo ($cont_row['category'] === 'Mr') ? 'selected' : ''; ?>>Mr</option>
+                        </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="department"><strong>Department:</strong></label>
+                    <select id="department" name="department" class="form-control" required>
+                      <?php
+                      $departments = $conn->query("SELECT * FROM dapartment");
+                      while ($row = $departments->fetch()) {
+                        $selected = ($row['department_id'] == $cont_row['department_id']) ? 'selected' : '';
+                        echo "<option value='{$row['department_id']}' $selected>{$row['department']}</option>";
+                      }
+                      ?>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="imageUpload"><strong>Upload Image:</strong></label>
+                    <input type="file" id="imageUpload" name="image" accept="image/*" class="form-control" required />
+                  </div>
+                <?php } ?>
+                <div class="form-group text-right">
                   <a href="sub_event_details_edit.php?sub_event_id=<?php echo $sub_event_id; ?>&se_name=<?php echo $se_name; ?>"
                     class="btn btn-default">Back</a>
-                  &nbsp;
-                  <button name="edit_contestant" class="btn btn-success">Update</button>
-                </td>
-              </tr>
-            </table>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-3"></div>
-    </form>
+                  <button type="submit" name="edit_contestant" class="btn btn-primary">Save</button>
+                </div>
+      </form>
+    </div>
   </div>
+
+  </td>
+  </tr>
+  </table>
+  </form>
+
+
+  </div>
+
+  </div>
+
 
   <script>
     function checkControlNumber(value, subEventId) {
@@ -125,46 +171,74 @@ $contestant_id = $_GET['contestant_id'];
   </script>
 
   <?php
+  // Handle form submission
   if (isset($_POST['edit_contestant'])) {
     $se_name = $_POST['se_name'];
     $sub_event_id = $_POST['sub_event_id'];
     $contestant_id = $_POST['contestant_id'];
     $contestant_ctr = $_POST['contestant_ctr'];
+    $department = $_POST['department']; // Fixed typo
+    $category = $_POST['category'];
     $fullname = $_POST['fullname'];
 
-    $check_query = $conn->query("SELECT * FROM contestants WHERE contestant_ctr='$contestant_ctr' AND subevent_id='$sub_event_id' AND contestant_id != '$contestant_id'");
+    // Check for duplicate control number
+    $check_query = $conn->prepare("SELECT * FROM contestants WHERE contestant_ctr = ? AND subevent_id = ? AND contestant_id != ?");
+    $check_query->execute([$contestant_ctr, $sub_event_id, $contestant_id]);
+
     if ($check_query->rowCount() > 0) {
       echo "<script>alert('Control number already taken. Please choose another.');</script>";
     } else {
-      $update_query = "UPDATE contestants SET fullname='$fullname', contestant_ctr='$contestant_ctr'";
+      // Update contestant details
+      $update_query = "UPDATE contestants SET fullname = ?, contestant_ctr = ?, category = ?, department_id = ?";
+      $params = [$fullname, $contestant_ctr, $category, $department];
 
+      // Handle image upload
       if (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
         $imageTmpPath = $_FILES['image']['tmp_name'];
         $imageName = $_FILES['image']['name'];
-        $imageExtension = pathinfo($imageName, PATHINFO_EXTENSION);
-        $cleanFullname = preg_replace('/[^a-zA-Z0-9_-]/', '_', $fullname . $contestant_ctr);
-        $newImageName = $cleanFullname . '.' . $imageExtension;
+        $imageExtension = strtolower(pathinfo($imageName, PATHINFO_EXTENSION));
 
-        $uploadFolder = 'uploads/contestants/';
-        if (!is_dir($uploadFolder)) {
-          mkdir($uploadFolder, 0755, true);
-        }
+        // Validate file type
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+        if (in_array($imageExtension, $allowedExtensions)) {
+          $cleanFullname = preg_replace('/[^a-zA-Z0-9_-]/', '_', $fullname . $contestant_ctr);
+          $newImageName = $cleanFullname . '.' . $imageExtension;
 
-        $imagePath = $uploadFolder . $newImageName;
-        if (move_uploaded_file($imageTmpPath, $imagePath)) {
-          $update_query .= ", image='$newImageName'";
+          $uploadFolder = 'uploads/contestants/';
+          if (!is_dir($uploadFolder)) {
+            mkdir($uploadFolder, 0755, true);
+          }
+
+          $imagePath = $uploadFolder . $newImageName;
+          if (move_uploaded_file($imageTmpPath, $imagePath)) {
+            $update_query .= ", image = ?";
+            $params[] = $newImageName;
+          } else {
+            echo "<script>alert('Failed to upload image.');</script>";
+            exit;
+          }
+        } else {
+          echo "<script>alert('Invalid file type.');</script>";
+          exit;
         }
       }
-      $update_query .= " WHERE contestant_id='$contestant_id'";
-      $conn->query($update_query);
 
-      echo "<script>
-        window.location = 'sub_event_details_edit.php?sub_event_id=$sub_event_id&se_name=$se_name';
-        alert('Contestant $fullname updated successfully!');
-      </script>";
+      $update_query .= " WHERE contestant_id = ?";
+      $params[] = $contestant_id;
+
+      $stmt = $conn->prepare($update_query);
+      if ($stmt->execute($params)) {
+        echo "<script>
+                alert('Contestant $fullname updated successfully!');
+                window.location = 'sub_event_details_edit.php?sub_event_id=$sub_event_id&se_name=$se_name';
+            </script>";
+      } else {
+        echo "<script>alert('Failed to update contestant.');</script>";
+      }
     }
   }
   ?>
+
 
   <?php include('footer.php'); ?>
   <script src="../assets/js/ie10-viewport-bug-workaround.js"></script>

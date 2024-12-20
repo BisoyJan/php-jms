@@ -145,7 +145,6 @@ $se_row = $se_query->fetch();
 
             <div class="collapse indent" id="contestant">
 
-
               <section id="download-bootstrap">
                 <div class="page-header">
                   <h1>Contestant's Settings
@@ -161,49 +160,72 @@ $se_row = $se_query->fetch();
                     <th>Check to Select</th>
                     <th>No.</th>
                     <th>Name</th>
+                    <th>Image</th>
+                    <th>Category</th>
+                    <th>Department</th>
                     <th>Actions</th>
                   </thead>
                   <form method="POST">
 
                     <tbody>
                       <?php
-                      $cont_query = $conn->query("SELECT * FROM contestants WHERE subevent_id='$sub_event_id' order by contestant_ctr") or die(mysqli::$error);
+                      // Query to fetch contestant details including department
+                      $cont_query = $conn->query("
+                          SELECT 
+                            contestants.*, 
+                            dapartment.department 
+                          FROM 
+                            contestants 
+                          JOIN 
+                            dapartment 
+                          ON 
+                            contestants.department_id = dapartment.department_id 
+                          WHERE 
+                            subevent_id='$sub_event_id' 
+                        ") or die(mysqli::$error);
+
                       while ($cont_row = $cont_query->fetch()) {
                         $cont_id = $cont_row['contestant_id'];
                         ?>
 
                         <tr>
-
                           <td width="115">
-
                             <input name="selector[]" type="checkbox" value="<?php echo $cont_id; ?>"
                               title="Check to select <?php echo $cont_row['fullname']; ?>" />
                           </td>
-
                           <td width="10">
                             <?php echo $cont_row['contestant_ctr']; ?>
                           </td>
                           <td>
                             <?php echo $cont_row['fullname']; ?>
                           </td>
-                          <td width="10"><a title="Click to edit <?php echo $cont_row['fullname']; ?> datas"
+                          <td>
+                            <img src="uploads/contestants/<?php echo $cont_row['image']; ?>"
+                              alt="Image of <?php echo $cont_row['fullname']; ?>" style="width: auto; height: 100px;">
+                          </td>
+                          <td>
+                            <?php echo $cont_row['category']; ?>
+                          </td>
+                          <td>
+                            <?php echo $cont_row['department']; ?>
+                          </td>
+                          <td width="10">
+                            <a title="Click to edit <?php echo $cont_row['fullname']; ?> data"
                               href="edit_contestant.php?contestant_id=<?php echo $cont_row['contestant_id']; ?>&sub_event_id=<?php echo $sub_event_id; ?>&se_name=<?php echo $se_name; ?>"
-                              class="btn btn-success"><i class="icon icon-pencil"></i></a></td>
+                              class="btn btn-success"><i class="icon icon-pencil"></i></a>
+                          </td>
                         </tr>
                       <?php } ?>
                       <tr>
-
-                        <td colspan="4">
+                        <td colspan="7">
                           <input required="true" type="password" placeholder="Organizer Password" name="org_pass" />
                           <input type="hidden" name="sub_event_id" value="<?php echo $sub_event_id; ?>" />
                           <input type="hidden" name="se_name" value="<?php echo $se_name; ?>" />
 
                           <button title="Click to delete selected row(s)" type="submit" class="btn btn-danger"
                             name="delete_cont"><i class="icon icon-trash"></i></button>
-
                         </td>
                       </tr>
-
                     </tbody>
 
                   </form>
@@ -213,6 +235,7 @@ $se_row = $se_query->fetch();
               </section>
 
             </div>
+
 
 
 
