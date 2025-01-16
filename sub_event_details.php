@@ -219,6 +219,7 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
         jQuery(document).ready(function ($) {
             var count = 1;
             var constestant = 1;
+            var judge = 1;
 
             // Add Contestants
             $('#add-contestant').click(function (e) {
@@ -226,15 +227,15 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
                 constestant++;
                 $('#contestant-form .text-box:last').after(`<p class="text-box"><label>Contestant No. <span class="box-number">${constestant}</span></label><input type="text" name="contestants[]" placeholder="Contestant Fullname" required /><label>Image:</label><input type="file" name="contestant_images[]" accept="image/*" required /><label>Category:</label><select name="contestant_categories[]" required><option value="Ms">Ms</option><option value="Mr">Mr</option></select><label>Department:</label><select name="contestant_departments[]" required><?php $departments = $conn->query("SELECT * FROM dapartment");
                 while ($row = $departments->fetch()) {
-                    echo "<option value='{$row['department_id']}'>{$row['depart']}</option>";
+                    echo "<option value='{$row['department_id']}'>{$row['department']}</option>";
                 } ?></select></p>`);
             });
 
             // Add Judges
             $('#add-judge').click(function (e) {
                 e.preventDefault();
-                count++;
-                $('#judge-form .text-box:last').after(`<p class="text-box"><label>Judge No. <span class="box-number">${count}</span></label><input type="text" name="judges[]" placeholder="Judge Fullname" required /></p>`);
+                judge++;
+                $('#judge-form .text-box:last').after(`<p class="text-box"><label>Judge No. <span class="box-number">${judge}</span></label><input type="text" name="judges[]" placeholder="Judge Fullname" required /></p>`);
             });
 
             // Add Criteria and Validate Points
