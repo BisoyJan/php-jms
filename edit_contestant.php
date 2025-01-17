@@ -107,48 +107,48 @@ $contestant_id = $_GET['contestant_id'];
                           value="<?php echo $cont_row['fullname']; ?>" required />
                       </div>
 
-                      <di<div class="form-group">
+                      <div class="form-group">
                         <label for="category"><strong>Category:</strong></label>
                         <select id="category" name="category" class="form-control" required>
                           <option value="Ms" <?php echo ($cont_row['category'] === 'Ms') ? 'selected' : ''; ?>>Ms</option>
                           <option value="Mr" <?php echo ($cont_row['category'] === 'Mr') ? 'selected' : ''; ?>>Mr</option>
                         </select>
-                  </div>
+                      </div>
 
-                  <div class="form-group">
-                    <label for="department"><strong>Department:</strong></label>
-                    <select id="department" name="department" class="form-control" required>
-                      <?php
-                      $departments = $conn->query("SELECT * FROM dapartment");
-                      while ($row = $departments->fetch()) {
-                        $selected = ($row['department_id'] == $cont_row['department_id']) ? 'selected' : '';
-                        echo "<option value='{$row['department_id']}' $selected>{$row['department']}</option>";
-                      }
-                      ?>
-                    </select>
-                  </div>
+                      <div class="form-group">
+                        <label for="department"><strong>Department:</strong></label>
+                        <select id="department" name="department" class="form-control" required>
+                          <?php
+                          $departments = $conn->query("SELECT * FROM dapartment");
+                          while ($row = $departments->fetch()) {
+                            $selected = ($row['department_id'] == $cont_row['department_id']) ? 'selected' : '';
+                            echo "<option value='{$row['department_id']}' $selected>{$row['department']}</option>";
+                          }
+                          ?>
+                        </select>
+                      </div>
 
-                  <div class="form-group">
-                    <label for="imageUpload"><strong>Upload Image:</strong></label>
-                    <input type="file" id="imageUpload" name="image" accept="image/*" class="form-control" required />
-                  </div>
-                <?php } ?>
-                <div class="form-group text-right">
-                  <a href="sub_event_details_edit.php?sub_event_id=<?php echo $sub_event_id; ?>&se_name=<?php echo $se_name; ?>"
-                    class="btn btn-default">Back</a>
-                  <button type="submit" name="edit_contestant" class="btn btn-primary">Save</button>
+                      <div class="form-group">
+                        <label for="imageUpload"><strong>Upload Image:</strong></label>
+                        <input type="file" id="imageUpload" name="image" accept="image/*" class="form-control" required />
+                      </div>
+                    <?php } ?>
+                    <div class="form-group text-right">
+                      <a href="sub_event_details_edit.php?sub_event_id=<?php echo $sub_event_id; ?>&se_name=<?php echo $se_name; ?>"
+                        class="btn btn-default">Back</a>
+                      <button type="submit" name="edit_contestant" class="btn btn-primary">Save</button>
+                    </div>
+                  </form>
                 </div>
+              </div>
+
+            </td>
+          </tr>
+        </table>
       </form>
+
+
     </div>
-  </div>
-
-  </td>
-  </tr>
-  </table>
-  </form>
-
-
-  </div>
 
   </div>
 
