@@ -217,18 +217,82 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
 
     <script>
         jQuery(document).ready(function ($) {
-            var count = 1;
-            var constestant = 1;
-            var judge = 1;
+            // var count = 1;
+            // var constestant = 1;
+            // var judge = 1;
+
+            // // Add Contestants
+            // $('#add-contestant').click(function (e) {
+
+            //     var e = document.getElementById("ddlViewBy");
+            //     var value = e.value;
+            //     var text = e.options[e.selectedIndex].text;
+
+            //     e.preventDefault();
+            //     constestant++;
+            //     $('#contestant-form .text-box:last').after(`<p class="text-box"><label>Contestant No. <span class="box-number">${constestant}</span></label><input type="text" name="contestants[]" placeholder="Contestant Fullname" required /><label>Image:</label><input type="file" name="contestant_images[]" accept="image/*" required /><label>Category:</label><select name="contestant_categories[]" required><option value="Ms">Ms</option><option value="Mr">Mr</option></select><label>Department:</label><select name="contestant_departments[]" required><?php $departments = $conn->query("SELECT * FROM dapartment");
+            //     while ($row = $departments->fetch()) {
+            //         echo "<option value='{$row['department_id']}'>{$row['department']}</option>";
+            //     } ?></select></p>`);
+            // });
+
+            let categoryCounters = {
+                Ms: 1,
+                Mr: 1
+            };
+
+            $(document).ready(function () {
+                const firstCategory = $('#contestant-form .text-box:first select[name="contestant_categories[]"]').val();
+                if (firstCategory === 'Ms') {
+                    categoryCounters.Ms = 2; // Start Ms counter from 2
+                } else if (firstCategory === 'Mr') {
+                    categoryCounters.Mr = 2; // Start Mr counter from 2
+                }
+            });
 
             // Add Contestants
             $('#add-contestant').click(function (e) {
                 e.preventDefault();
-                constestant++;
-                $('#contestant-form .text-box:last').after(`<p class="text-box"><label>Contestant No. <span class="box-number">${constestant}</span></label><input type="text" name="contestants[]" placeholder="Contestant Fullname" required /><label>Image:</label><input type="file" name="contestant_images[]" accept="image/*" required /><label>Category:</label><select name="contestant_categories[]" required><option value="Ms">Ms</option><option value="Mr">Mr</option></select><label>Department:</label><select name="contestant_departments[]" required><?php $departments = $conn->query("SELECT * FROM dapartment");
-                while ($row = $departments->fetch()) {
-                    echo "<option value='{$row['department_id']}'>{$row['department']}</option>";
-                } ?></select></p>`);
+
+                // Get the currently selected category (defaults to 'Ms')
+                const lastCategorySelect = $('#contestant-form .text-box:last select[name="contestant_categories[]"]');
+                const selectedCategory = lastCategorySelect.val() || 'Ms';
+
+                // Use and increment the appropriate counter
+                const categoryCount = categoryCounters[selectedCategory]++;
+
+                // Add new contestant form
+                $('#contestant-form .text-box:last').after(`
+                <p class="text-box">
+                    <label>Contestant No. <span class="box-number">${categoryCount}</span></label>
+                    <input type="text" name="contestants[]" placeholder="Contestant Fullname" required />
+                    <label>Image:</label>
+                    <input type="file" name="contestant_images[]" accept="image/*" required />
+                    <label>Category:</label>
+                    <select name="contestant_categories[]" class="category-dropdown" required>
+                        <option value="Ms"${selectedCategory === 'Ms' ? ' selected' : ''}>Ms</option>
+                        <option value="Mr"${selectedCategory === 'Mr' ? ' selected' : ''}>Mr</option>
+                    </select>
+                    <label>Department:</label>
+                    <select name="contestant_departments[]" required>
+                        <?php
+                        // Example department options
+                        echo "<option value='1'>Department A</option>";
+                        echo "<option value='2'>Department B</option>";
+                        ?>
+                    </select>
+                </p>
+            `);
+
+                // Update the counter when the category is changed
+                $('.category-dropdown').last().change(function () {
+                    const newCategory = $(this).val();
+                    const parentBox = $(this).closest('.text-box');
+
+                    // Update the number for the new category and increment
+                    const newCount = categoryCounters[newCategory]++;
+                    parentBox.find('.box-number').text(newCount);
+                });
             });
 
             // Add Judges
@@ -254,6 +318,8 @@ foreach (['contestants', 'judges', 'criteria'] as $table) {
                 }
                 return true;
             }
+
+            $('#settingsForm').on('input', '.criteria-points', updateTotalPoints);
 
             $('#criteria-form').on('input', '.criteria-points', updateTotalPoints);
 

@@ -160,7 +160,7 @@
     
 if($pageStat=="Change")
 { 
-    $cont_query = $conn->query("select * from contestants where subevent_id='$subevent_id' AND contestant_id='$getContestant_id'") or die(mysql_error());
+    $cont_query = $conn->query("select * from contestants JOIN dapartment On contestants.department_id = dapartment.department_id where subevent_id='$subevent_id' AND contestant_id='$getContestant_id'") or die(mysql_error());
 while ($cont_row = $cont_query->fetch()) { 
      
     ?>
@@ -170,7 +170,7 @@ while ($cont_row = $cont_query->fetch()) {
 <?php }}
 else
 {
-    $cont_query = $conn->query("select * from contestants where subevent_id='$subevent_id' order by contestant_ctr") or die(mysql_error());
+    $cont_query = $conn->query("select * from contestants JOIN dapartment On contestants.department_id = dapartment.department_id where subevent_id='$subevent_id' order by contestant_ctr") or die(mysql_error());
 while ($cont_row = $cont_query->fetch()) { 
     $con_idTab=$cont_row['contestant_id'];
     
@@ -180,9 +180,9 @@ while ($cont_row = $cont_query->fetch()) {
 
     ?>
     <?php if($getContestant_id==$con_idTab){?>
-        <li class="active" ><a href="judge_panel.php?judge_ctr=<?php echo $judge_ctr; ?>&subevent_id=<?php echo $subevent_id; ?>&contestant_id=<?php echo $con_idTab;?>"><strong><?php echo $cont_row['fullname']; ?></strong></a></li>
+        <li class="active" ><a href="judge_panel.php?judge_ctr=<?php echo $judge_ctr; ?>&subevent_id=<?php echo $subevent_id; ?>&contestant_id=<?php echo $con_idTab;?>"><strong><?php echo $cont_row['contestant_ctr'] .' - '. $cont_row['category'].' - '. $cont_row['fullname'] . '-' . $cont_row['department']; ?></strong></a></li>
     <?php }else{  ?>
-            <li class="" ><a href="judge_panel.php?judge_ctr=<?php echo $judge_ctr; ?>&subevent_id=<?php echo $subevent_id; ?>&contestant_id=<?php echo $con_idTab;?>"><?php echo $cont_row['fullname']; ?></a></li>
+            <li class="" ><a href="judge_panel.php?judge_ctr=<?php echo $judge_ctr; ?>&subevent_id=<?php echo $subevent_id; ?>&contestant_id=<?php echo $con_idTab;?>"><?php echo $cont_row['contestant_ctr'] .' - '. $cont_row['category'].' - '. $cont_row['fullname'] . '-' . $cont_row['department']; ?></a></li>
    
     <?php }} ?>
     
@@ -197,8 +197,6 @@ while ($cont_row = $cont_query->fetch()) {
       
      
   
-
-
 <?php   } ?>
 
 </ul> 
@@ -1117,7 +1115,7 @@ if($getContestant_id=="allTally")
                  
                      if($pageStat=="Change")
                      {
-                    $cont_query = $conn->query("select * from contestants where subevent_id='$subevent_id' AND contestant_id='$getContestant_id'") or die(mysql_error());
+                    $cont_query = $conn->query("select * from contestants JOIN dapartment On contestants.department_id = dapartment.department_id where subevent_id='$subevent_id' AND contestant_id='$getContestant_id'") or die(mysql_error());
                     while ($cont_row = $cont_query->fetch()) { 
                     $con_idTab=$cont_row['contestant_id'];
                     ?>
@@ -1127,15 +1125,15 @@ if($getContestant_id=="allTally")
                      
                      } else {
                         
-                    $cont_query = $conn->query("select * from contestants where subevent_id='$subevent_id' order by contestant_ctr") or die(mysql_error());
+                    $cont_query = $conn->query("select * from contestants JOIN dapartment On contestants.department_id = dapartment.department_id where subevent_id='$subevent_id' order by contestant_ctr") or die(mysql_error());
                     while ($cont_row = $cont_query->fetch()) { 
                     $con_idTab=$cont_row['contestant_id'];
                     
                     ?>
                     <?php if($getContestant_id==$con_idTab){?>
-                       <strong><a href="judge_panel.php?judge_ctr=<?php echo $judge_ctr; ?>&subevent_id=<?php echo $subevent_id; ?>&contestant_id=<?php echo $con_idTab;?>"><?php echo $cont_row['fullname']; ?></a></strong> &middot;
+                       <strong><a href="judge_panel.php?judge_ctr=<?php echo $judge_ctr; ?>&subevent_id=<?php echo $subevent_id; ?>&contestant_id=<?php echo $con_idTab;?>"><?php echo $cont_row['contestant_ctr'] .' - '. $cont_row['fullname'] . '-' . $cont_row['department']; ?></a></strong> &middot;
                     <?php }else{?> 
-                   <a href="judge_panel.php?judge_ctr=<?php echo $judge_ctr; ?>&subevent_id=<?php echo $subevent_id; ?>&contestant_id=<?php echo $con_idTab;?>"><?php echo $cont_row['fullname']; ?></a> &middot;
+                   <a href="judge_panel.php?judge_ctr=<?php echo $judge_ctr; ?>&subevent_id=<?php echo $subevent_id; ?>&contestant_id=<?php echo $con_idTab;?>"><?php echo $cont_row['contestant_ctr'] .' - '. $cont_row['fullname'] . '-' . $cont_row['department']; ?></a> &middot;
                     <?php } } ?>
                     <?php if($getContestant_id=="allTally"){?>
                    <strong><a href="judge_panel.php?judge_ctr=<?php echo $judge_ctr; ?>&subevent_id=<?php echo $subevent_id; ?>&contestant_id=allTally">View Tally</a></strong>  
@@ -1569,9 +1567,9 @@ if( $jstat_rowx == 1 )
     
     ?>
     <?php if($getContestant_id==$con_idTab){?>
-       <strong><a href="judge_panel.php?judge_ctr=<?php echo $judge_ctr; ?>&subevent_id=<?php echo $subevent_id; ?>&contestant_id=<?php echo $con_idTab;?>"><?php echo $cont_row['fullname']; ?></a></strong> &middot;
+       <strong><a href="judge_panel.php?judge_ctr=<?php echo $judge_ctr; ?>&subevent_id=<?php echo $subevent_id; ?>&contestant_id=<?php echo $con_idTab;?>"><?php echo $cont_row['contestant_ctr'] .' - '. $cont_row['category'] .' - '. $cont_row['fullname'] . '-' . $cont_row['department']; ?></a></strong> &middot;
     <?php }else{?> 
-   <a href="judge_panel.php?judge_ctr=<?php echo $judge_ctr; ?>&subevent_id=<?php echo $subevent_id; ?>&contestant_id=<?php echo $con_idTab;?>"><?php echo $cont_row['fullname']; ?></a> &middot;
+   <a href="judge_panel.php?judge_ctr=<?php echo $judge_ctr; ?>&subevent_id=<?php echo $subevent_id; ?>&contestant_id=<?php echo $con_idTab;?>"><?php echo $cont_row['contestant_ctr'] .' - '. $cont_row['category'].' - '. $cont_row['fullname'] . '-' . $cont_row['department']; ?></a> &middot;
     <?php } } ?>
     <?php if($getContestant_id=="allTally"){?>
    <strong><a href="judge_panel.php?judge_ctr=<?php echo $judge_ctr; ?>&subevent_id=<?php echo $subevent_id; ?>&contestant_id=allTally">View Tally</a></strong>  
