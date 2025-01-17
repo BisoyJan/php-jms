@@ -90,7 +90,7 @@ $se_name = $_GET['se_name'];
 
                     <div class="form-group">
                       <label for="category"><strong>Category:</strong></label>
-                      <select id="category" name="contestant_categories" class="form-control" required>
+                      <select id="category" name="category" class="form-control" required>
                         <option value="Ms">Ms</option>
                         <option value="Mr">Mr</option>
                       </select>
@@ -98,7 +98,7 @@ $se_name = $_GET['se_name'];
 
                     <div class="form-group">
                       <label for="department"><strong>Department:</strong></label>
-                      <select id="department" name="contestant_departments" class="form-control" required>
+                      <select id="department" name="department" class="form-control" required>
                         <?php
                         $departments = $conn->query("SELECT * FROM dapartment");
                         while ($row = $departments->fetch()) {

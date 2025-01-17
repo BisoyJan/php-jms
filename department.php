@@ -12,14 +12,14 @@ if (isset($_POST['save_department'])) {
 
     if ($department_id) {
         // Update department
-        $conn->query("UPDATE dapartment SET depart = '$department_name' WHERE department_id = '$department_id'");
+        $conn->query("UPDATE dapartment SET department = '$department_name' WHERE department_id = '$department_id'");
         echo "<script>
          alert('Department updated successfully!');
          window.location = 'department.php';
       </script>";
     } else {
         // Add department
-        $conn->query("INSERT INTO dapartment (depart) VALUES ('$department_name')");
+        $conn->query("INSERT INTO dapartment (department) VALUES ('$department_name')");
         echo "<script>
          alert('Department added successfully!');
          window.location = 'department.php';
@@ -38,7 +38,7 @@ if (isset($_GET['delete_id'])) {
 }
 
 // Fetch all departments
-$departments = $conn->query("SELECT * FROM dapartment ORDER BY depart ASC");
+$departments = $conn->query("SELECT * FROM dapartment ORDER BY department ASC");
 ?>
 
 <body>
@@ -94,9 +94,9 @@ $departments = $conn->query("SELECT * FROM dapartment ORDER BY depart ASC");
                             while ($row = $departments->fetch()) {
                                 echo "<tr>";
                                 echo "<td>" . $count++ . "</td>";
-                                echo "<td>" . htmlspecialchars($row['depart']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['department']) . "</td>";
                                 echo "<td>
-                           <button class='btn btn-primary btn-sm' onclick='editDepartment(" . $row['department_id'] . ", `" . htmlspecialchars($row['depart']) . "`)'>Edit</button>
+                           <button class='btn btn-primary btn-sm' onclick='editDepartment(" . $row['department_id'] . ", `" . htmlspecialchars($row['department']) . "`)'>Edit</button>
                            <a href='settings.php?delete_id=" . $row['department_id'] . "' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure?\")'>Delete</a>
                         </td>";
                                 echo "</tr>";

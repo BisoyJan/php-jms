@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 17, 2025 at 02:44 PM
+-- Generation Time: Jan 17, 2025 at 03:18 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -49,7 +49,8 @@ INSERT INTO `contestants` (`contestant_id`, `fullname`, `image`, `category`, `de
 (3, 'killer', 'killer1.jpg', 'Ms', 1, 2, 1, '', '', 3965853, 0),
 (4, 'Jan Ramil Intong', 'Jan_Ramil_Intong2.jpg', 'Ms', 1, 2, 2, '', '', 7903882, 0),
 (5, 'killer', 'killer1.jpg', 'Ms', 1, 4, 1, '', '', 5754515, 0),
-(6, 'Jan Ramil Intong', 'Jan_Ramil_Intong2.jpg', 'Ms', 2, 4, 2, '', '', 5479260, 0);
+(6, 'Jan Ramil Intong', 'Jan_Ramil_Intong2.jpg', 'Ms', 2, 4, 2, '', '', 5479260, 0),
+(10, 'aaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaa4.jpg', 'Mr', 3, 2, 4, '', '', 2986188, 0);
 
 -- --------------------------------------------------------
 
@@ -92,7 +93,8 @@ CREATE TABLE `dapartment` (
 
 INSERT INTO `dapartment` (`department_id`, `department`) VALUES
 (1, 'Computer Studies'),
-(2, 'Nursing');
+(2, 'Nursing'),
+(3, 'Enginerring');
 
 -- --------------------------------------------------------
 
@@ -424,7 +426,7 @@ ALTER TABLE `textpoll`
 -- AUTO_INCREMENT for table `contestants`
 --
 ALTER TABLE `contestants`
-  MODIFY `contestant_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `contestant_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `criteria`
@@ -436,7 +438,7 @@ ALTER TABLE `criteria`
 -- AUTO_INCREMENT for table `dapartment`
 --
 ALTER TABLE `dapartment`
-  MODIFY `department_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `department_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `judges`
