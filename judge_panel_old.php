@@ -873,15 +873,9 @@ if( $jstat_rowx == 1 )
       
 <?php }  } ?>
  
-
- 
- 
- 
- 
 </div> </div> </div>
 
-                       
-                        
+                                    
 <div class="footer">
 
  
@@ -918,11 +912,6 @@ if( $jstat_rowx == 1 )
      
      }?>
      
-     
-     
-      
-      
-     
                           <div class="container">
                           <center>
                           
@@ -933,8 +922,6 @@ if( $jstat_rowx == 1 )
                           </div>
  
 </div>
-     
- 
      
 <?php } } else{ ?> 
 
@@ -947,10 +934,6 @@ if( $jstat_rowx == 1 )
 
 <?php } ?> 
 
- 
- 
- 
-  
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
