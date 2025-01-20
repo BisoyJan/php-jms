@@ -150,6 +150,7 @@
         echo "<thead>";
         echo "<tr>";
         echo "<th>Participant</th>";
+        echo "<th>Department</th>"; // New column for department
         echo "<th>Summary of Scores</th>";
         echo "<th>Participant's Placing</th>";
         echo "</tr>";
@@ -164,13 +165,19 @@
           // Fetch contestant details
           $cname_query = $conn->query("SELECT * FROM contestants WHERE contestant_id='$contestant_id'") or die($conn->error);
           if ($cname_query->rowCount() == 0) {
-            echo "<tr><td colspan='3'>Contestant not found: $contestant_id</td></tr>";
+            echo "<tr><td colspan='4'>Contestant not found: $contestant_id</td></tr>";
             continue;
           }
 
           $cname_row = $cname_query->fetch();
           $contXXname = $cname_row['contestant_ctr'] . "." . $cname_row['fullname'];
 
+          // Fetch department name
+          $department_id = $cname_row['department_id'];
+          $department_query = $conn->query("SELECT * FROM dapartment WHERE department_id='$department_id'") or die($conn->error);
+          $department_row = $department_query->fetch();
+          $department_name = $department_row['department'] ?? 'Unknown'; // Default to 'Unknown' if department not found
+  
           // Calculate total rank for the contestant
           $rank_score = 0;
           $tot_score_query = $conn->query("
@@ -194,6 +201,7 @@
           $contestants[] = [
             'id' => $contestant_id,
             'name' => $contXXname,
+            'department' => $department_name, // Add department name
             'rank' => $rank_score
           ];
         }
@@ -209,12 +217,14 @@
           $rspCtr++;
           $contestant_id = $contestant['id'];
           $contXXname = $contestant['name'];
+          $department_name = $contestant['department']; // Fetch department name
           $rank_score = $contestant['rank'];
 
-          // Display contestant name
+          // Display contestant name and department
           echo "<tr>";
           echo "<td><h5 class='participant-name'>$contXXname</h5></td>";
-
+          echo "<td>$department_name</td>"; // Display department name
+  
           // Fetch and display scores from judges
           echo "<td>";
           echo "<table class='table table-bordered'>";

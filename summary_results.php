@@ -8,212 +8,185 @@ include('session.php');
 // Debugging: Check database connection
 if (!$conn) {
   die("Database connection failed: " . mysqli_connect_error());
-} else {
-  echo "<script>console.log('Database connected successfully!');</script>";
 }
 
 // Check if main_event_id is passed in the URL
 if (!isset($_GET['main_event_id'])) {
-  die("<script>console.error('main_event_id is not set in the URL.');</script>");
+  die("main_event_id is not set in the URL.");
 }
 
 $active_main_event = $_GET['main_event_id'];
-echo "<script>console.log('main_event_id:', " . json_encode($active_main_event) . ");</script>"; // Log main_event_id
 
 // Fetch main event details
-$stmt = $conn->prepare("SELECT * FROM main_event WHERE mainevent_id = ?");
-$stmt->execute([$active_main_event]);
-$event_query = $stmt->fetchAll();
+function fetchMainEvent($conn, $main_event_id)
+{
+  $stmt = $conn->prepare("SELECT * FROM main_event WHERE mainevent_id = ?");
+  $stmt->execute([$main_event_id]);
+  return $stmt->fetch();
+}
 
-if (empty($event_query)) {
-  die("<script>console.error('No data found for main_event_id:', " . json_encode($active_main_event) . ");</script>");
-} else {
-  echo "<script>console.log('Main event data found:', " . json_encode($event_query) . ");</script>"; // Log main event data
+$main_event = fetchMainEvent($conn, $active_main_event);
+if (!$main_event) {
+  die("No data found for main_event_id: $active_main_event");
+}
+
+// Fetch sub-events for the main event
+function fetchSubEvents($conn, $main_event_id)
+{
+  $stmt = $conn->prepare("SELECT * FROM sub_event WHERE mainevent_id = ?");
+  $stmt->execute([$main_event_id]);
+  return $stmt->fetchAll();
+}
+
+$sub_events = fetchSubEvents($conn, $active_main_event);
+if (empty($sub_events)) {
+  die("No sub-events found for main_event_id: $active_main_event");
+}
+
+// Fetch contestants for a sub-event and category
+function fetchContestants($conn, $sub_event_id, $category)
+{
+  $stmt = $conn->prepare("SELECT DISTINCT c.contestant_id, c.fullname, c.department_id 
+                          FROM contestants c
+                          WHERE c.subevent_id = ? AND c.category = ?");
+  $stmt->execute([$sub_event_id, $category]);
+  return $stmt->fetchAll();
+}
+
+// Fetch criteria for a sub-event
+function fetchCriteria($conn, $sub_event_id)
+{
+  $stmt = $conn->prepare("SELECT * FROM criteria WHERE subevent_id = ? ORDER BY criteria_ctr ASC");
+  $stmt->execute([$sub_event_id]);
+  return $stmt->fetchAll();
+}
+
+// Fetch scores for a contestant in a sub-event
+function fetchScores($conn, $contestant_id, $sub_event_id)
+{
+  $stmt = $conn->prepare("SELECT * FROM sub_results WHERE contestant_id = ? AND subevent_id = ?");
+  $stmt->execute([$contestant_id, $sub_event_id]);
+  return $stmt->fetch();
+}
+
+// Fetch department name
+function fetchDepartment($conn, $department_id)
+{
+  $stmt = $conn->prepare("SELECT department FROM dapartment WHERE department_id = ?");
+  $stmt->execute([$department_id]);
+  $result = $stmt->fetch();
+  return $result ? $result['department'] : 'Unknown';
+}
+
+// Calculate ranks for contestants
+function calculateRanks($contestants)
+{
+  usort($contestants, function ($a, $b) {
+    return $b['total_score'] <=> $a['total_score'];
+  });
+
+  $rank = 1;
+  $prev_score = null;
+  foreach ($contestants as &$contestant) {
+    if ($contestant['total_score'] !== $prev_score) {
+      $rank = $rank; // Keep rank the same for ties
+    }
+    $contestant['rank'] = $rank;
+    $prev_score = $contestant['total_score'];
+    $rank++;
+  }
+
+  return $contestants;
+}
+
+// Render the tally sheet for a category
+function renderTallySheet($conn, $sub_event, $category)
+{
+  $contestants = fetchContestants($conn, $sub_event['subevent_id'], $category);
+  $criteria = fetchCriteria($conn, $sub_event['subevent_id']);
+
+  if (empty($contestants)) {
+    echo "<p>No contestants found for {$category}.</p>";
+    return;
+  }
+
+  $contestant_scores = [];
+  foreach ($contestants as $contestant) {
+    $scores = fetchScores($conn, $contestant['contestant_id'], $sub_event['subevent_id']);
+    $total_score = 0;
+
+    foreach ($criteria as $criterion) {
+      $criteria_ctr = "criteria_ctr" . $criterion['criteria_ctr'];
+      $score = isset($scores[$criteria_ctr]) ? $scores[$criteria_ctr] : 0; // Ensure score is fetched correctly
+      $total_score += $score;
+    }
+
+    $contestant_scores[] = [
+      'fullname' => $contestant['fullname'],
+      'department' => fetchDepartment($conn, $contestant['department_id']),
+      'scores' => $scores,
+      'total_score' => $total_score,
+    ];
+  }
+
+  $ranked_contestants = calculateRanks($contestant_scores);
+
+  echo "<h3>Tally Sheet for {$category}.</h3>";
+  echo "<h4>EVENT: <strong>{$sub_event['event_name']}</strong></h4>";
+  echo "<hr />";
+
+  echo "<table align='center' class='table table-bordered' id='example'>
+          <tr>
+            <th>Rank</th>
+            <th>Contestant</th>
+            <th>Department</th>";
+
+  foreach ($criteria as $criterion) {
+    echo "<th>{$criterion['criteria']}</th>";
+  }
+
+  echo "<th>Total Score</th>
+        </tr>";
+
+  foreach ($ranked_contestants as $contestant) {
+    echo "<tr>
+            <td>{$contestant['rank']}</td>
+            <td>{$contestant['fullname']}</td>
+            <td>{$contestant['department']}</td>";
+
+    foreach ($criteria as $criterion) {
+      $criteria_ctr = "criteria_ctr" . $criterion['criteria_ctr'];
+      echo "<td>" . (isset($contestant['scores'][$criteria_ctr]) ? $contestant['scores'][$criteria_ctr] : 0) . "</td>";
+    }
+
+    echo "<td><strong>{$contestant['total_score']}</strong></td>
+          </tr>";
+  }
+
+  echo "</table>";
 }
 ?>
 
 <body>
   <div class="container">
     <div class="span12">
-      <?php
-      foreach ($event_query as $event_row) {
-        echo "<center>";
-        include('doc_header.php');
-
-        echo "<table>
-                <tr>
-                  <td align='center'>
-                    <h3><strong>{$event_row['event_name']}</strong></h3>
-                  </td>
-                </tr>
-                <tr>
-                  <td align='center'>
-                    <h3>Tally Sheet</h3>
-                  </td>
-                </tr>
-              </table>
-            </center>";
-      }
-      ?>
+      <center>
+        <h3><strong><?php echo $main_event['event_name']; ?></strong></h3>
+        <h3>Tally Sheet</h3>
+      </center>
 
       <section id="download-bootstrap">
         <div class="page-header">
           <table style="width: 100% !important;" align="center">
             <?php
-            // Fetch distinct school years (sy) for the organizer and main event
-            $stmt = $conn->prepare("SELECT DISTINCT sy FROM main_event WHERE organizer_id = ? AND mainevent_id = ?");
-            $stmt->execute([$session_id, $active_main_event]);
-            $sy_query = $stmt->fetchAll();
+            foreach ($sub_events as $sub_event) {
+              echo "<tr><td>";
 
-            if (empty($sy_query)) {
-              die("<script>console.error('No school years found for organizer_id:', " . json_encode($session_id) . ", 'and main_event_id:', " . json_encode($active_main_event) . ");</script>");
-            } else {
-              echo "<script>console.log('School years found:', " . json_encode($sy_query) . ");</script>"; // Log school years
-            }
+              // Render tally sheets for Mr. and Ms.
+              renderTallySheet($conn, $sub_event, 'Mr');
+              renderTallySheet($conn, $sub_event, 'Ms');
 
-            foreach ($sy_query as $sy_row) {
-              $sy = $sy_row['sy'];
-              echo "<script>console.log('Processing school year:', " . json_encode($sy) . ");</script>"; // Log current school year
-            
-              // Fetch main events for the school year
-              $stmt = $conn->prepare("SELECT * FROM main_event WHERE sy = ?");
-              $stmt->execute([$sy]);
-              $MEctrQuery = $stmt->fetchAll();
-
-              if (empty($MEctrQuery)) {
-                die("<script>console.error('No main events found for school year:', " . json_encode($sy) . ");</script>");
-              } else {
-                echo "<script>console.log('Main events found for school year:', " . json_encode($MEctrQuery) . ");</script>"; // Log main events
-              }
-
-              echo "<tr>
-                        <td>";
-
-              // Fetch sub-events for the main event
-              $stmt = $conn->prepare("SELECT * FROM sub_event WHERE mainevent_id = ?");
-              $stmt->execute([$active_main_event]);
-              $SEctrQuery = $stmt->fetchAll();
-
-              if (empty($SEctrQuery)) {
-                die("<script>console.error('No sub-events found for main_event_id:', " . json_encode($active_main_event) . ");</script>");
-              } else {
-                echo "<script>console.log('Sub-events found:', " . json_encode($SEctrQuery) . ");</script>"; // Log sub-events
-              }
-
-              // Separate tally sheets for Mr. and Ms.
-              $categories = ['Mr', 'Ms'];
-              foreach ($categories as $category) {
-                echo "<h3>Tally Sheet for {$category}.</h3>";
-
-                foreach ($SEctrQuery as $SECtr) {
-                  $rs_subevent_id = $SECtr['subevent_id'];
-                  echo "<script>console.log('Processing sub-event:', " . json_encode($SECtr) . ");</script>"; // Log current sub-event
-            
-                  echo "<h4>EVENT: <strong>{$SECtr['event_name']}</strong></h4>
-                              <hr />";
-
-                  // Fetch contestants for the sub-event and category
-                  $stmt = $conn->prepare("SELECT DISTINCT fullname, contestant_id FROM contestants WHERE subevent_id = ? AND category = ?");
-                  $stmt->execute([$rs_subevent_id, $category]);
-                  $contxx_query = $stmt->fetchAll();
-
-                  if (empty($contxx_query)) {
-                    echo "<script>console.warn('No contestants found for subevent_id:', " . json_encode($rs_subevent_id) . ", 'and category:', " . json_encode($category) . ");</script>"; // Log missing contestants
-                  } else {
-                    echo "<script>console.log('Contestants found:', " . json_encode($contxx_query) . ");</script>"; // Log contestants
-                  }
-
-                  // Fetch criteria for the sub-event
-                  $stmt = $conn->prepare("SELECT * FROM criteria WHERE subevent_id = ? ORDER BY criteria_ctr ASC");
-                  $stmt->execute([$rs_subevent_id]);
-                  $criteria_query = $stmt->fetchAll();
-
-                  if (empty($criteria_query)) {
-                    echo "<script>console.warn('No criteria found for subevent_id:', " . json_encode($rs_subevent_id) . ");</script>"; // Log missing criteria
-                  } else {
-                    echo "<script>console.log('Criteria found:', " . json_encode($criteria_query) . ");</script>"; // Log criteria
-                  }
-
-                  // Fetch scores and calculate ranks
-                  $contestant_scores = [];
-                  foreach ($contxx_query as $contxx_row) {
-                    $contxzID = $contxx_row['contestant_id'];
-
-                    // Fetch criteria scores for the contestant
-                    $stmt = $conn->prepare("SELECT * FROM sub_results WHERE contestant_id = ? AND subevent_id = ?");
-                    $stmt->execute([$contxzID, $rs_subevent_id]);
-                    $criteria_scores = $stmt->fetchAll();
-
-                    if (!empty($criteria_scores)) {
-                      $total_score = 0;
-                      $scores = [];
-                      foreach ($criteria_query as $criteria) {
-                        $criteria_ctr = "criteria_ctr" . $criteria['criteria_ctr'];
-                        $score = $criteria_scores[0][$criteria_ctr] ?? 0; // Default to 0 if score is missing
-                        $scores[$criteria_ctr] = $score;
-                        $total_score += $score;
-                      }
-
-                      $contestant_scores[] = [
-                        'fullname' => $contxx_row['fullname'],
-                        'scores' => $scores,
-                        'total_score' => $total_score,
-                      ];
-                    }
-                  }
-
-                  // Sort contestants by total score in descending order
-                  usort($contestant_scores, function ($a, $b) {
-                    return $b['total_score'] <=> $a['total_score'];
-                  });
-
-                  // Assign ranks (handle ties)
-                  $rank = 1;
-                  $prev_score = null;
-                  foreach ($contestant_scores as &$contestant) {
-                    if ($contestant['total_score'] !== $prev_score) {
-                      $rank = $rank + 0; // Increment rank only if the score changes
-                    }
-                    $contestant['rank'] = $rank;
-                    $prev_score = $contestant['total_score'];
-                    $rank++;
-                  }
-
-                  echo "<table align='center' class='table table-bordered' id='example'>
-                                <tr>
-                                  <th>Rank</th>
-                                  <th>Contestant</th>";
-
-                  // Dynamically generate criteria columns
-                  foreach ($criteria_query as $criteria) {
-                    echo "<th>{$criteria['criteria']}</th>";
-                  }
-
-                  echo "<th>Total Score</th>
-                                </tr>";
-
-                  // Display contestants with their rank and scores
-                  foreach ($contestant_scores as $contestant) {
-                    echo "<tr>
-                                    <td>{$contestant['rank']}</td>
-                                    <td>{$contestant['fullname']}</td>";
-
-                    // Dynamically display scores for each criteria
-                    foreach ($criteria_query as $criteria) {
-                      $criteria_ctr = "criteria_ctr" . $criteria['criteria_ctr'];
-                      echo "<td>{$contestant['scores'][$criteria_ctr]}</td>";
-                    }
-
-                    echo "<td><strong>{$contestant['total_score']}</strong></td>
-                                  </tr>";
-                  }
-
-                  echo "</table>";
-                }
-              }
-
-              echo "</td>
-                      </tr>";
+              echo "</td></tr>";
             }
             ?>
           </table>

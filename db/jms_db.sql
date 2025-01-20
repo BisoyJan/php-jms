@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 17, 2025 at 03:18 PM
+-- Generation Time: Jan 20, 2025 at 05:23 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -46,11 +46,11 @@ CREATE TABLE `contestants` (
 --
 
 INSERT INTO `contestants` (`contestant_id`, `fullname`, `image`, `category`, `department_id`, `subevent_id`, `contestant_ctr`, `status`, `txt_code`, `rand_code`, `txtPollScore`) VALUES
-(3, 'killer', 'killer1.jpg', 'Ms', 1, 2, 1, '', '', 3965853, 0),
-(4, 'Jan Ramil Intong', 'Jan_Ramil_Intong2.jpg', 'Ms', 1, 2, 2, '', '', 7903882, 0),
-(5, 'killer', 'killer1.jpg', 'Ms', 1, 4, 1, '', '', 5754515, 0),
-(6, 'Jan Ramil Intong', 'Jan_Ramil_Intong2.jpg', 'Ms', 2, 4, 2, '', '', 5479260, 0),
-(10, 'aaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaa4.jpg', 'Mr', 3, 2, 4, '', '', 2986188, 0);
+(11, 'James', 'James1.jpg', 'Mr', 4, 7, 1, 'finish', '', 3463079, 0),
+(12, 'Mark', 'Mark2.jpg', 'Mr', 5, 7, 2, 'finish', '', 9980157, 0),
+(13, 'George', 'George3.jpg', 'Mr', 6, 7, 3, 'finish', '', 5468060, 0),
+(15, 'Mae', 'Mae1.jpg', 'Ms', 4, 7, 1, 'finish', '', 7533760, 0),
+(16, 'Rae', 'Rae2.jpg', 'Ms', 5, 7, 2, 'finish', '', 7475912, 0);
 
 -- --------------------------------------------------------
 
@@ -71,10 +71,10 @@ CREATE TABLE `criteria` (
 --
 
 INSERT INTO `criteria` (`criteria_id`, `subevent_id`, `criteria`, `percentage`, `criteria_ctr`) VALUES
-(3, 2, 'qwer', 50, 1),
-(4, 2, '2', 50, 2),
-(5, 4, 'qwer', 50, 1),
-(6, 4, 'sample', 50, 2);
+(7, 7, 'Best in production ', 25, 1),
+(8, 7, 'Best in gown', 25, 2),
+(9, 7, 'Best it swim wear', 25, 3),
+(10, 7, 'Q&A', 25, 4);
 
 -- --------------------------------------------------------
 
@@ -92,9 +92,9 @@ CREATE TABLE `dapartment` (
 --
 
 INSERT INTO `dapartment` (`department_id`, `department`) VALUES
-(1, 'Computer Studies'),
-(2, 'Nursing'),
-(3, 'Enginerring');
+(4, 'Engineering'),
+(5, 'Computer Studies'),
+(6, 'Criminology');
 
 -- --------------------------------------------------------
 
@@ -116,10 +116,9 @@ CREATE TABLE `judges` (
 --
 
 INSERT INTO `judges` (`judge_id`, `subevent_id`, `judge_ctr`, `fullname`, `code`, `jtype`) VALUES
-(3, 2, 1, '1', '8dizzy', ''),
-(4, 2, 2, '2', 'fbvtct', ''),
-(5, 4, 1, '1', '5p6pp2', ''),
-(6, 4, 2, '2', 'bm856o', '');
+(7, 7, 1, 'Sophie ', 'jj0w5z', ''),
+(8, 7, 2, 'Gev', '4u4b7x', ''),
+(9, 7, 3, 'Dave', '0oh6hf', '');
 
 -- --------------------------------------------------------
 
@@ -143,8 +142,7 @@ CREATE TABLE `main_event` (
 --
 
 INSERT INTO `main_event` (`mainevent_id`, `event_name`, `status`, `organizer_id`, `sy`, `date_start`, `date_end`, `place`) VALUES
-(8, 'Sample', 'activated', 1, '2025-2026', '2025-01-16', '2025-01-20', 'Tacloban'),
-(9, 'Fucked', 'activated', 1, '2025-2026', '2025-01-16', '2025-01-23', 'San Jose');
+(10, 'FOUNDATION DAY', 'activated', 2, '2024-2025', '2025-10-01', '2025-02-01', 'ADFC');
 
 -- --------------------------------------------------------
 
@@ -247,7 +245,8 @@ CREATE TABLE `organizer` (
 --
 
 INSERT INTO `organizer` (`organizer_id`, `fname`, `mname`, `lname`, `username`, `password`, `email`, `pnum`, `access`, `org_id`, `status`, `company_name`, `company_address`, `company_logo`, `company_telephone`, `company_email`, `company_website`) VALUES
-(1, 'Jan Ramil', 'Pantorilla', 'Intong', 'bisoyjan', 'bisoyjan', '', '', 'Organizer', '', 'offline', '', '', '', '', '', '');
+(2, 'admin', 'm', 'admin', 'admin', 'admin', 'malate@gmail.com', '09107806750', 'Organizer', '', 'offline', 'Asian Development Foundation College', 'P. Burgos St. Tacloban City', '54013-asian.jpeg', '1234567', 'adfc@gmail.com', 'https//:adfc.com'),
+(3, 'Mckervin', 'H', 'Malate', 'admin', 'admin', '', '', 'Tabulator', '2', 'offline', '', '', '', '', '', '');
 
 -- --------------------------------------------------------
 
@@ -261,6 +260,17 @@ CREATE TABLE `rank_system` (
   `contestant_id` varchar(12) NOT NULL,
   `total_rank` decimal(3,1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `rank_system`
+--
+
+INSERT INTO `rank_system` (`rs_id`, `subevent_id`, `contestant_id`, `total_rank`) VALUES
+(1, '7', '11', 16.0),
+(2, '7', '12', 24.0),
+(3, '7', '13', 17.0),
+(4, '7', '15', 38.0),
+(5, '7', '16', 25.0);
 
 -- --------------------------------------------------------
 
@@ -287,9 +297,7 @@ CREATE TABLE `sub_event` (
 --
 
 INSERT INTO `sub_event` (`subevent_id`, `mainevent_id`, `organizer_id`, `event_name`, `status`, `eventdate`, `eventtime`, `place`, `txtpoll_status`, `view`, `txtpollview`) VALUES
-(2, 8, 1, 'Swim Suit', 'activated', '2025-01-19', '02:30', 'Asian', '', '', ''),
-(4, 8, 1, 'esfesf', 'activated', '2025-01-17', '02:30', 'wadwadaw', '', '', ''),
-(5, 9, 1, 'Sample Sub', 'activated', '2025-01-16', '1', 'adwada', '', '', '');
+(7, 10, 2, 'Mr. & Ms. Sport', 'activated', '2025-01-26', '2;00', 'Robinson North\r\n', '', 'activated', '');
 
 -- --------------------------------------------------------
 
@@ -320,6 +328,27 @@ CREATE TABLE `sub_results` (
   `judge_rank_stat` varchar(15) NOT NULL,
   `place_title` varchar(25) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `sub_results`
+--
+
+INSERT INTO `sub_results` (`subresult_id`, `subevent_id`, `mainevent_id`, `contestant_id`, `judge_id`, `total_score`, `deduction`, `criteria_ctr1`, `criteria_ctr2`, `criteria_ctr3`, `criteria_ctr4`, `criteria_ctr5`, `criteria_ctr6`, `criteria_ctr7`, `criteria_ctr8`, `criteria_ctr9`, `criteria_ctr10`, `comments`, `rank`, `judge_rank_stat`, `place_title`) VALUES
+(1, 7, 10, 11, 7, 95.0, 1, 23.5, 22.5, 24.0, 25.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 'Good job!', '7', '', ''),
+(2, 7, 10, 12, 7, 97.0, 0, 23.5, 24.5, 24.5, 24.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 'Good!', '3', '', ''),
+(3, 7, 10, 13, 7, 96.0, 0, 24.0, 24.0, 24.0, 24.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 'Good', '4', '', ''),
+(4, 7, 10, 11, 8, 93.5, 1, 23.5, 23.5, 24.0, 22.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 'Great', '8', '', ''),
+(5, 7, 10, 12, 8, 92.0, 0, 23.0, 23.0, 23.0, 23.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 'Great ', '9', '', ''),
+(6, 7, 10, 13, 8, 97.5, 0, 24.0, 24.5, 24.5, 24.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 'Hhh', '2', '', ''),
+(7, 7, 10, 11, 9, 98.0, 1, 24.5, 24.5, 24.5, 24.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 'Hhh', '1', '', ''),
+(8, 7, 10, 12, 9, 79.5, 0, 17.0, 19.5, 23.0, 20.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, '', '12', '', ''),
+(9, 7, 10, 13, 9, 83.0, 0, 23.0, 17.5, 20.0, 22.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, '', '11', '', ''),
+(10, 7, 10, 15, 7, 87.0, 0, 17.0, 22.0, 24.0, 24.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, '', '10', '', ''),
+(11, 7, 10, 16, 7, 96.0, 0, 24.0, 24.0, 24.0, 24.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, '', '5', '', ''),
+(12, 7, 10, 16, 9, 65.0, 0, 12.0, 18.0, 21.5, 13.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, '', '14', '', ''),
+(13, 7, 10, 15, 8, 74.0, 0, 23.0, 8.5, 21.0, 21.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, '', '13', '', ''),
+(14, 7, 10, 15, 9, 61.0, 0, 5.0, 20.5, 18.5, 17.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, '', '15', '', ''),
+(15, 7, 10, 16, 8, 96.0, 0, 23.5, 24.0, 24.0, 24.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, '', '6', '', '');
 
 -- --------------------------------------------------------
 
@@ -426,31 +455,31 @@ ALTER TABLE `textpoll`
 -- AUTO_INCREMENT for table `contestants`
 --
 ALTER TABLE `contestants`
-  MODIFY `contestant_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `contestant_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `criteria`
 --
 ALTER TABLE `criteria`
-  MODIFY `criteria_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `criteria_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `dapartment`
 --
 ALTER TABLE `dapartment`
-  MODIFY `department_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `department_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `judges`
 --
 ALTER TABLE `judges`
-  MODIFY `judge_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `judge_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `main_event`
 --
 ALTER TABLE `main_event`
-  MODIFY `mainevent_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `mainevent_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `messagein`
@@ -474,25 +503,25 @@ ALTER TABLE `messageout`
 -- AUTO_INCREMENT for table `organizer`
 --
 ALTER TABLE `organizer`
-  MODIFY `organizer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `organizer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `rank_system`
 --
 ALTER TABLE `rank_system`
-  MODIFY `rs_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `rs_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `sub_event`
 --
 ALTER TABLE `sub_event`
-  MODIFY `subevent_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `subevent_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `sub_results`
 --
 ALTER TABLE `sub_results`
-  MODIFY `subresult_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `subresult_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `textpoll`
